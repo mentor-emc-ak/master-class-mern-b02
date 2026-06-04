@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * LoginForm - Renders a simple login form.
@@ -17,6 +17,25 @@ export default function LoginForm({ onLogin }) {
       onLogin(username);
     }
   };
+
+  const handleResize = () => {
+    console.log('Window resized! Current dimensions:', { width: window.innerWidth, height: window.innerHeight });
+  }
+
+
+  useEffect(() => {
+    if (username) {
+      console.log('Username changed:', username);
+    }
+    console.log('This will run on every render of LoginForm. Current values:', { username, password })
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup function to remove event listener when component unmounts
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [username, password])
 
   return (
     <form onSubmit={handleSubmit} style={styles.form}>

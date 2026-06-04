@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -7,6 +8,9 @@ import PropTypes from 'prop-types';
  * demonstrating how props can be passed through multiple component layers.
  */
 export default function Dashboard({ isLoggedIn, username }) {
+
+ 
+
   return (
     <div style={styles.dashboard}>
       <h2 style={styles.heading}>Dashboard</h2>

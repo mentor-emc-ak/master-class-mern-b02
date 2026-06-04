@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import Navbar from './components/Navbar'
 import Dashboard from './components/Dashboard'
@@ -29,6 +29,7 @@ function App() {
     setUsername('')
   }
 
+
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5fa' }}>
       {/* 
@@ -43,10 +44,6 @@ function App() {
         onLogin={handleLogin}
       />
 
-      {/* 
-        Another prop drilling example:
-        Dashboard receives props that originated from App state
-      */}
       <Dashboard isLoggedIn={isLoggedIn} username={username} />
     </div>
   )
