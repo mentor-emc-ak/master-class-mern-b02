@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import './App.css'
 import Navbar from './components/Navbar'
 import Dashboard from './components/Dashboard'
 
@@ -13,40 +12,40 @@ import Dashboard from './components/Dashboard'
  *    App → Dashboard (another branch of prop drilling)
  */
 function App() {
-  // State managed at the top level
+   // State managed at the top level
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [username, setUsername] = useState('')
 
-  // Handle login from LoginForm
+   // Handle login from LoginForm
   const handleLogin = (user) => {
     setUsername(user)
     setIsLoggedIn(true)
-  }
+   }
 
-  // Handle logout from UserProfile
+   // Handle logout from UserProfile
   const handleLogout = () => {
     setIsLoggedIn(false)
     setUsername('')
-  }
+   }
 
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5fa' }}>
-      {/* 
-        PROP DRILLING EXAMPLE:
-        - isLoggedIn, username, handleLogin, handleLogout all drilled down
-        - Navbar decides which sub-component to render (conditional rendering)
-      */}
-      <Navbar
-        isLoggedIn={isLoggedIn}
-        username={username}
-        onLogout={handleLogout}
-        onLogin={handleLogin}
-      />
+      <div className="min-h-screen bg-[#f5f5fa]">
+        {/* 
+          PROP DRILLING EXAMPLE:
+            - isLoggedIn, username, handleLogin, handleLogout all drilled down
+            - Navbar decides which sub-component to render (conditional rendering)
+         */}
+        <Navbar
+          isLoggedIn={isLoggedIn}
+          username={username}
+          onLogout={handleLogout}
+          onLogin={handleLogin}
+        />
 
       <Dashboard isLoggedIn={isLoggedIn} username={username} />
     </div>
-  )
+   )
 }
 
 export default App

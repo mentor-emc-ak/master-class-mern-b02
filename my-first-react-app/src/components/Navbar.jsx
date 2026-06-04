@@ -11,20 +11,20 @@ import UserProfile from './UserProfile';
  */
 export default function Navbar({ isLoggedIn, username, onLogout, onLogin }) {
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.navContent}>
-        <h1 style={styles.logo}>MyReactApp</h1>
+      <nav className="bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white py-4 px-6 shadow-lg">
+        <div className="max-w-[900px] mx-auto flex justify-between items-center flex-wrap gap-3">
+          <h1 className="text-2xl font-bold">MyReactApp</h1>
 
-        {isLoggedIn ? (
-          // User is logged in → show profile info + logout button
-          <UserProfile username={username} onLogout={onLogout} />
-        ) : (
-          // User is NOT logged in → show login form
-          <LoginForm onLogin={onLogin} />
-        )}
-      </div>
-    </nav>
-  );
+          {isLoggedIn ? (
+            // User is logged in → show profile info + logout button
+            <UserProfile username={username} onLogout={onLogout} />
+          ) : (
+            // User is NOT logged in → show login form
+            <LoginForm onLogin={onLogin} />
+          )}
+        </div>
+      </nav>
+    );
 }
 
 Navbar.propTypes = {
@@ -33,25 +33,3 @@ Navbar.propTypes = {
   onLogout: PropTypes.func.isRequired,
   onLogin: PropTypes.func.isRequired,
 };
-
-const styles = {
-  navbar: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: '#fff',
-    padding: '16px 24px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-  },
-  navContent: {
-    maxWidth: '900px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-  },
-  logo: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    margin: 0,
-  },};
