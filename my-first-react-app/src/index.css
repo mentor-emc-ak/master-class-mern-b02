@@ -57,6 +57,20 @@ body {
   margin: 0;
 }
 
+/* ── Render debugger animations ─────────────────────────────────────────────── */
+
+/* Fired every time a component re-renders — border fades from solid to invisible */
+@keyframes render-flash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Slow pulse on the component that is the active step in the debugger */
+@keyframes highlight-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
 #root {
   width: 1126px;
   max-width: 100%;

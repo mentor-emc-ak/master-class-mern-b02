@@ -1,35 +1,24 @@
-import PropTypes from 'prop-types';
-import LoginForm from './LoginForm';
-import UserProfile from './UserProfile';
+import { useRenderTracker } from '../debug/useRenderTracker';
+import { DebugOverlay } from '../debug/DebugOverlay';
 
-/**
- * Navbar - Top-level component that conditionally renders
- * either the LoginForm or UserProfile based on login status.
- * 
- * Demonstrates PROP DRILLING: username and onLogout are passed
- * through Navbar -> LoginForm/UserProfile without intermediate components reading them.
- */
-export default function Navbar({ isLoggedIn, username, onLogout, onLogin }) {
+function Navbar() {
+  const { renderCount, forceRerender } = useRenderTracker('Navbar');
+
   return (
-      <nav className="bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white py-4 px-6 shadow-lg">
-        <div className="max-w-[900px] mx-auto flex justify-between items-center flex-wrap gap-3">
-          <h1 className="text-2xl font-bold">MyReactApp</h1>
+    <nav className="relative bg-blue-200 border-2 border-blue-400 rounded-xl p-4 mb-4">
+      <DebugOverlay name="Navbar" renderCount={renderCount} onRerender={forceRerender} />
 
-          {isLoggedIn ? (
-            // User is logged in → show profile info + logout button
-            <UserProfile username={username} onLogout={onLogout} />
-          ) : (
-            // User is NOT logged in → show login form
-            <LoginForm onLogin={onLogin} />
-          )}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-blue-900">MyApp</h1>
+        <div className="flex gap-6 text-blue-800 font-medium">
+          <span>Home</span>
+          <span>About</span>
+          <span>Contact</span>
         </div>
-      </nav>
-    );
+      </div>
+      <p className="text-xs text-blue-500 mt-1 text-right italic">Navbar.jsx</p>
+    </nav>
+  );
 }
 
-Navbar.propTypes = {
-  isLoggedIn: PropTypes.bool.isRequired,
-  username: PropTypes.string,
-  onLogout: PropTypes.func.isRequired,
-  onLogin: PropTypes.func.isRequired,
-};
+export default Navbar;

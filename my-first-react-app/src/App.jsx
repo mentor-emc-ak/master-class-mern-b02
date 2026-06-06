@@ -1,49 +1,29 @@
-import { useState, useEffect } from 'react'
-import Navbar from './components/Navbar'
-import Dashboard from './components/Dashboard'
-import Counter from './Counter'
+import { DebugProvider } from './debug/DebugContext';
+import { RenderDebugger } from './debug/RenderDebugger';
+import { useRenderTracker } from './debug/useRenderTracker';
+import { DebugOverlay } from './debug/DebugOverlay';
+import Layout from './components/Layout';
 
-/**
- * App - Top-level component that manages login state.
- * 
- * This demonstrates:
- * 1. CONDITIONAL RENDERING: Navbar shows LoginForm or UserProfile based on isLoggedIn
- * 2. PROP DRILLING: username & onLogout passed through multiple layers
- *    App → Navbar → (LoginForm | UserProfile)
- *    App → Dashboard (another branch of prop drilling)
- */
-function App() {
-   // State managed at the top level
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState('')
-
-   // Handle login from LoginForm
-  const handleLogin = (user) => {
-    setUsername(user)
-    setIsLoggedIn(true)
-   }
-
-   // Handle logout from UserProfile
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUsername('')
-   }
-
+// AppContent is a separate component so it can call useRenderTracker
+// (hooks must be called inside a child of DebugProvider, not in the provider itself)
+function AppContent() {
+  const { renderCount, forceRerender } = useRenderTracker('App');
 
   return (
-      <div className="min-h-screen bg-[#f5f5fa]">
-        <Navbar
-          isLoggedIn={isLoggedIn}
-          username={username}
-          onLogout={handleLogout}
-          onLogin={handleLogin}
-        />
-
-      <Dashboard isLoggedIn={isLoggedIn} username={username} />
-
-      {/* <Counter /> */}
+    <div style={{ position: 'relative' }}>
+      <DebugOverlay name="App" renderCount={renderCount} onRerender={forceRerender} />
+      <Layout />
     </div>
-   )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <DebugProvider>
+      <AppContent />
+      <RenderDebugger />
+    </DebugProvider>
+  );
+}
+
+export default App;
