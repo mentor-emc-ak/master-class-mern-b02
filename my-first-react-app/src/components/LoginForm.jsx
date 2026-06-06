@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * LoginForm - Renders a simple login form.
@@ -7,9 +7,19 @@ import { useState, useEffect } from 'react';
  * This component receives `onLogin` via PROP DRILLING from Navbar,
  * which itself received it from App (the top-level state manager).
  */
+
+// I want to focus the login username on page load, so I will use useRef to create a reference to the input element and then focus it in a useEffect hook.
+
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,6 +58,7 @@ export default function LoginForm({ onLogin }) {
             <input
               id="login-username"
               type="text"
+              ref={inputRef}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"

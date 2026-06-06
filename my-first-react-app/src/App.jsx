@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Dashboard from './components/Dashboard'
+import Counter from './Counter'
 
 /**
  * App - Top-level component that manages login state.
@@ -31,11 +32,6 @@ function App() {
 
   return (
       <div className="min-h-screen bg-[#f5f5fa]">
-        {/* 
-          PROP DRILLING EXAMPLE:
-            - isLoggedIn, username, handleLogin, handleLogout all drilled down
-            - Navbar decides which sub-component to render (conditional rendering)
-         */}
         <Navbar
           isLoggedIn={isLoggedIn}
           username={username}
@@ -44,6 +40,8 @@ function App() {
         />
 
       <Dashboard isLoggedIn={isLoggedIn} username={username} />
+
+      {/* <Counter /> */}
     </div>
    )
 }

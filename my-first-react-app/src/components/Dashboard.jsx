@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -7,8 +7,10 @@ import PropTypes from 'prop-types';
  * This is an additional level of prop drilling: App → Navbar → Dashboard
  * demonstrating how props can be passed through multiple component layers.
  */
-export default function Dashboard({ isLoggedIn, username }) {
 
+// use React.memo to memoize the Dashboard component and prevent unnecessary re-renders
+
+const Dashboard = React.memo(({ isLoggedIn, username }) => {
 
   return (
        <div className="max-w-[900px] mx-auto my-8 px-6">
@@ -38,9 +40,11 @@ export default function Dashboard({ isLoggedIn, username }) {
          )}
        </div>
      );
-}
+});
 
 Dashboard.propTypes = {
   isLoggedIn: PropTypes.bool.isRequired,
   username: PropTypes.string,
 };
+
+export default Dashboard;
