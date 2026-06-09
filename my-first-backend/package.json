@@ -1,0 +1,15 @@
+{
+  "name": "my-first-backend",
+  "version": "0.0.1",
+  "description": "this is a development while learning",
+  "license": "MIT",
+  "author": "emc-mern-ak",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
