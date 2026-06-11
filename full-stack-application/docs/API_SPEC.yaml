@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: Task Manager API
+  version: 1.0.0
+  description: REST API for the internal Trello-like task manager.
+
+servers:
+  - url: /api/v1
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID Token
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        uid: { type: string, description: Firebase UID }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, member, viewer] }
+
+    Board:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        color: { type: string }
+        owner: { type: string, description: User id }
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              user: { type: string }
+              role: { type: string, enum: [admin, member, viewer] }
+        createdAt: { type: string, format: date-time }
+
+    List:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        boardId: { type: string }
+        position: { type: number }
+        createdAt: { type: string, format: date-time }
+
+    Card:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        listId: { type: string }
+        boardId: { type: string }
+        assignees:
+          type: array
+          items: { type: string, description: User id }
+        labels:
+          type: array
+          items: { type: string, description: Label id }
+        priority: { type: string, enum: [low, medium, high] }
+        dueDate: { type: string, format: date-time }
+        position: { type: number }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Comment:
+      type: object
+      properties:
+        id: { type: string }
+        cardId: { type: string }
+        author: { type: string, description: User id }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Label:
+      type: object
+      properties:
+        id: { type: string }
+        boardId: { type: string }
+        name: { type: string }
+        color: { type: string }
+
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+
+security:
+  - BearerAuth: []
+
+paths:
+
+  # ── AUTH / USERS ──────────────────────────────────────────
+  /users/me:
+    get:
+      summary: Get current user profile
+      tags: [Users]
+      responses:
+        200:
+          description: Current user
+          content:
+            application/json:
+              schema:
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/User' }
+
+  /users/sync:
+    post:
+      summary: Sync Firebase user to MongoDB after first login
+      tags: [Users]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name: { type: string }
+      responses:
+        200:
+          description: User synced
+
+  /users/my-tasks:
+    get:
+      summary: Get all cards assigned to the current user
+      tags: [Users]
+      parameters:
+        - name: boardId
+          in: query
+          schema: { type: string }
+        - name: priority
+          in: query
+          schema: { type: string, enum: [low, medium, high] }
+        - name: dueDate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        200:
+          description: List of cards
+
+  # ── BOARDS ────────────────────────────────────────────────
+  /boards:
+    get:
+      summary: List boards the current user belongs to
+      tags: [Boards]
+      responses:
+        200:
+          description: Array of boards
+    post:
+      summary: Create a board
+      tags: [Boards]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+                description: { type: string }
+                color: { type: string }
+      responses:
+        201:
+          description: Board created
+
+  /boards/{boardId}:
+    get:
+      summary: Get board details (lists + cards)
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Board with nested lists and cards
+    patch:
+      summary: Update board title / description / color
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+                description: { type: string }
+                color: { type: string }
+      responses:
+        200:
+          description: Updated board
+    delete:
+      summary: Delete board (admin only)
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Board deleted
+
+  /boards/{boardId}/members:
+    post:
+      summary: Invite a user to the board
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email: { type: string }
+                role: { type: string, enum: [member, viewer] }
+      responses:
+        200:
+          description: Member added
+
+  /boards/{boardId}/members/{userId}:
+    patch:
+      summary: Change a member's role
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                role: { type: string, enum: [member, viewer] }
+      responses:
+        200:
+          description: Role updated
+    delete:
+      summary: Remove a member from the board
+      tags: [Boards]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Member removed
+
+  # ── LISTS ─────────────────────────────────────────────────
+  /boards/{boardId}/lists:
+    post:
+      summary: Create a list on a board
+      tags: [Lists]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+      responses:
+        201:
+          description: List created
+
+  /boards/{boardId}/lists/reorder:
+    patch:
+      summary: Reorder lists on a board
+      tags: [Lists]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                orderedIds:
+                  type: array
+                  items: { type: string }
+      responses:
+        200:
+          description: Order updated
+
+  /lists/{listId}:
+    patch:
+      summary: Rename a list
+      tags: [Lists]
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+      responses:
+        200:
+          description: List updated
+    delete:
+      summary: Delete a list and its cards
+      tags: [Lists]
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: List deleted
+
+  # ── CARDS ─────────────────────────────────────────────────
+  /lists/{listId}/cards:
+    post:
+      summary: Create a card in a list
+      tags: [Cards]
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+      responses:
+        201:
+          description: Card created
+
+  /lists/{listId}/cards/reorder:
+    patch:
+      summary: Reorder cards within a list
+      tags: [Cards]
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                orderedIds:
+                  type: array
+                  items: { type: string }
+      responses:
+        200:
+          description: Order updated
+
+  /cards/{cardId}:
+    get:
+      summary: Get card details
+      tags: [Cards]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Card object
+    patch:
+      summary: Update card fields
+      tags: [Cards]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title: { type: string }
+                description: { type: string }
+                assignees: { type: array, items: { type: string } }
+                labels: { type: array, items: { type: string } }
+                priority: { type: string, enum: [low, medium, high] }
+                dueDate: { type: string, format: date-time }
+                listId: { type: string, description: Move card to another list }
+      responses:
+        200:
+          description: Card updated
+    delete:
+      summary: Delete a card
+      tags: [Cards]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Card deleted
+
+  # ── COMMENTS ──────────────────────────────────────────────
+  /cards/{cardId}/comments:
+    get:
+      summary: List comments on a card
+      tags: [Comments]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Array of comments
+    post:
+      summary: Add a comment
+      tags: [Comments]
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                body: { type: string }
+      responses:
+        201:
+          description: Comment created
+
+  /comments/{commentId}:
+    patch:
+      summary: Edit a comment (author only)
+      tags: [Comments]
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                body: { type: string }
+      responses:
+        200:
+          description: Comment updated
+    delete:
+      summary: Delete a comment (author or admin)
+      tags: [Comments]
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Comment deleted
+
+  # ── LABELS ────────────────────────────────────────────────
+  /boards/{boardId}/labels:
+    get:
+      summary: List labels for a board
+      tags: [Labels]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Array of labels
+    post:
+      summary: Create a label
+      tags: [Labels]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name: { type: string }
+                color: { type: string }
+      responses:
+        201:
+          description: Label created
+
+  /labels/{labelId}:
+    delete:
+      summary: Delete a label
+      tags: [Labels]
+      parameters:
+        - name: labelId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Label deleted
