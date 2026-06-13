@@ -15,7 +15,12 @@ export default function Register() {
       await register(form.name, form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const firebaseMessages = {
+        'auth/email-already-in-use': 'An account with this email already exists',
+        'auth/weak-password': 'Password must be at least 6 characters',
+        'auth/invalid-email': 'Please enter a valid email address',
+      };
+      setError(firebaseMessages[err.code] || err.message || 'Registration failed');
     }
   };
 

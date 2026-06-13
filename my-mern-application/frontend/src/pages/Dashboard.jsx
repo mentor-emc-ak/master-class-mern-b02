@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { mongoUser, logout } = useAuth();
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState({ title: '', content: '' });
   const [editId, setEditId] = useState(null);
@@ -48,7 +48,7 @@ export default function Dashboard() {
       <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">My MERN App</h1>
         <div className="flex items-center gap-4">
-          <span className="text-gray-600 text-sm">Hello, {user?.name}</span>
+          <span className="text-gray-600 text-sm">Hello, {mongoUser?.name}</span>
           <button
             onClick={logout}
             className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-1.5 rounded-lg transition"
@@ -110,7 +110,7 @@ export default function Dashboard() {
                   <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">by {post.author?.name}</p>
                 </div>
-                {post.author?._id === user?.id && (
+                {post.author?._id === mongoUser?.id && (
                   <div className="flex gap-2">
                     <button
                       onClick={() => startEdit(post)}

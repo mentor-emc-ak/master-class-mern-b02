@@ -15,7 +15,13 @@ export default function Login() {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const firebaseMessages = {
+        'auth/user-not-found': 'No account found with this email',
+        'auth/wrong-password': 'Incorrect password',
+        'auth/invalid-credential': 'Invalid email or password',
+        'auth/too-many-requests': 'Too many failed attempts. Please try again later',
+      };
+      setError(firebaseMessages[err.code] || err.message || 'Login failed');
     }
   };
 
