@@ -1,4 +1,4 @@
-import admin from '../config/firebase.js';
+import { auth } from '../config/firebase.js';
 import User from '../models/User.js';
 
 export const protect = async (req, res, next) => {
@@ -8,7 +8,7 @@ export const protect = async (req, res, next) => {
   }
   try {
     const token = authHeader.split(' ')[1];
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await auth.verifyIdToken(token);
 
     let user = await User.findOne({ firebaseUid: decoded.uid });
     if (!user) {
