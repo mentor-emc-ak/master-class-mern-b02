@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -20,18 +20,20 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [mongoUser, setMongoUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Prevents onAuthStateChanged from racing with the registration flow
+  const isRegistering = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      if (firebaseUser) {
+      if (firebaseUser && !isRegistering.current) {
         try {
           const profile = await fetchMongoProfile();
           setMongoUser(profile);
         } catch {
           setMongoUser(null);
         }
-      } else {
+      } else if (!firebaseUser) {
         setMongoUser(null);
       }
       setLoading(false);
@@ -42,13 +44,19 @@ export function AuthProvider({ children }) {
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
   const register = async (name, email, password) => {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName: name });
-    // Force token refresh so the backend receives the updated displayName
-    await credential.user.getIdToken(true);
-    const profile = await fetchMongoProfile();
-    setMongoUser(profile);
-    return credential.user;
+    isRegistering.current = true;
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(credential.user, { displayName: name });
+      // Force token refresh so the backend receives the updated displayName
+      await credential.user.getIdToken(true);
+      // Explicitly persist the user in MongoDB
+      const { data: profile } = await api.post('/api/auth/register');
+      setMongoUser(profile);
+      return credential.user;
+    } finally {
+      isRegistering.current = false;
+    }
   };
 
   const logout = async () => {
